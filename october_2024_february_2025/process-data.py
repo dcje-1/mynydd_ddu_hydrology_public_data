@@ -21,26 +21,18 @@ from matplotlib.backends.backend_pdf import PdfPages
 # import xlsxwriter
 
 
-def import_nrw_data(file):
+def import_nrw_data(file, start_row, end_row):
     # Import NRW data with the date time parsed as the index
-    nrw_df = pd.read_csv(file, skiprows=6150, nrows=9469, encoding='utf-8', header=0,
+    nrw_df = pd.read_csv(file, skiprows=start_row, nrows=end_row, encoding='utf-8', header=0,
                          names=['Date (UTC)', 'Values'], index_col=0, parse_dates=True)
 
     return nrw_df
 
 
-def import_logger_data_long(file):
-    logger_df = pd.read_csv(file, skiprows=18243, nrows=28405, encoding='iso-8859-1', header=0,
-                            names=['Date/time', 'Water head[cm]', 'Temperature[°C]'], index_col=0, parse_dates=True)
+def import_logger_data(file, start_row, end_row):
 
-    logger_df['Water head[cm]'] = logger_df['Water head[cm]']/100
-    logger_df.rename(columns={'Water head[cm]': 'Water head[m]'}, inplace=True)
-
-    return logger_df
-
-
-def import_logger_data_short(file):
-    logger_df = pd.read_csv(file, skiprows=51, nrows=28405, encoding='iso-8859-1', index_col=0, parse_dates=True)
+    logger_df = pd.read_csv(file, skiprows=start_row, nrows=end_row  , encoding='iso-8859-1',
+                            header=0, names=['Date/time','Water head[cm]','Temperature[°C]'], index_col=0, parse_dates=True)
 
     logger_df['Water head[cm]'] = logger_df['Water head[cm]']/100
     logger_df.rename(columns={'Water head[cm]': 'Water head[m]'}, inplace=True)
@@ -148,7 +140,7 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         ax1.tick_params(axis='x', rotation=50)
         xfmt = mdates.DateFormatter('%d-%m-%y %H:%M')
         ax1.xaxis.set_major_formatter(xfmt)
-        # ax2.xaxis.set_major_locator(ticker.MultipleLocator(1))
+        ax1.xaxis.set_major_locator(ticker.MultipleLocator(0.25))
 
         # Defining the cursor
         # multi = MultiCursor(fig.canvas, (ax0, ax1, ax3), color='r', lw=1,
@@ -322,16 +314,16 @@ def write_excel(nrw_tawe_level,
 
 def main():
     # Name input files
-    file1 = "CSV/VEI_DZ629_WFF_241014205420_DZ629.csv"
-    file2 = "CSV/VEI_EW141_DYO_241014210038_EW141.csv"
-    file3 = "CSV/NRW_DYO_20241015201106.csv"
-    file4 = "CSV/NRW_TAWE_20241015200957.csv"
+    file1 = "CSV/VEI_DZ629_WFF_250209124536_DZ629.csv"
+    file2 = "CSV/VEI_EW141_DYO_250209124546_EW141.csv"
+    file3 = "CSV/NRW_DYO_20250208215247.csv"
+    file4 = "CSV/NRW_TAWE_20250208215134.csv"
 
     ## Import data
-    wff_level = import_logger_data_short(file1)
-    dyo_level = import_logger_data_long(file2)
-    nrw_dyo_rainfall = import_nrw_data(file3)
-    nrw_tawe_level = import_nrw_data(file4)
+    wff_level = import_logger_data(file1, 75, 33363)
+    dyo_level = import_logger_data(file2, 51, 33363)
+    nrw_dyo_rainfall = import_nrw_data(file3, 78, 11127)
+    nrw_tawe_level = import_nrw_data(file4, 78, 11127)
 
     ## Identify peaks times
     dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, dyo_temperature_trough_times_idx = identify_peaks(dyo_level)
