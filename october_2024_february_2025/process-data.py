@@ -26,7 +26,10 @@ def import_nrw_data(file, start_row, end_row):
     nrw_df = pd.read_csv(file, skiprows=start_row, nrows=end_row, encoding='utf-8', header=0,
                          names=['Date (UTC)', 'Values'], index_col=0, parse_dates=True)
 
-    return nrw_df
+    date_range = pd.date_range(start=nrw_df.index.min(), end=nrw_df.index.max(), freq='15min')
+    nrw_df_regular = nrw_df.reindex(date_range)
+
+    return nrw_df_regular
 
 
 def import_logger_data(file, start_row, end_row):
@@ -77,7 +80,7 @@ def calculate_averages(level_values):
 
 
 def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level,
-                 wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, labels):
+                 wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels):
     with PdfPages(r'outputs/summary_plots_2.pdf') as export_pdf:
         # Change the default font family to Arial
         plt.rcParams.update({'font.family': 'arial'})
@@ -96,7 +99,7 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         lines1 = ax3.plot(wff_level['Water head[m]'], '-b', label=labels[0])
         # Plot peaks
         ax3.plot(wff_level['Water head[m]'][wff_level_peak_times_idx], 'mo')
-        ax3.set_ylabel('Stream Stage (m)', weight="bold")
+        ax3.set_ylabel('Water depth (m)', weight="bold")
         ax3.grid(True)
         # Add peak annotations - sample numbers
         for i in range(0, len(wff_level_peak_times_idx)):
@@ -112,7 +115,7 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         lines3 = ax1.plot(dyo_level['Water head[m]'], '-b', label=labels[2])
         ax1.plot(dyo_level['Water head[m]'][dyo_level_peak_times_idx], 'bo')
         lines4 = ax1.plot(dyo_onetwenty_hr_mean, '-c', label=labels[3])
-        ax1.set_ylabel('River Stage (m)', weight="bold")
+        ax1.set_ylabel('Water depth (m)', weight="bold")
         ax1.grid(True)
 
         for i in range(0, len(dyo_level_peak_times_idx)):
@@ -129,12 +132,13 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
                          xy=(dyo_level.index[dyo_temperature_peak_times_idx[i]], dyo_level['Temperature[°C]'][dyo_temperature_peak_times_idx[i]]),
                          fontsize=8, color='m', xytext=(dyo_level.index[dyo_temperature_peak_times_idx[i]], dyo_level['Temperature[°C]'][dyo_temperature_peak_times_idx[i]]))
 
+        lines6 = ax4.plot(dyo_baro['Temperature[°C]'], '-g', label=labels[5])
 
         ax4.set_ylabel('Temperature (°C)', weight="bold")
 
-        lines6 = lines3 + lines4 + lines5
-        labels2 = [l.get_label() for l in lines6]
-        ax4.legend(lines6, labels2, loc=0)
+        lines7 = lines3 + lines4 + lines5 + lines6
+        labels2 = [l.get_label() for l in lines7]
+        ax4.legend(lines7, labels2, loc=0)
 
         ax1.set_xlabel('Timestamp', weight="bold")
         ax1.tick_params(axis='x', rotation=50)
@@ -152,6 +156,17 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         mng.resize(1500, 720)
         export_pdf.savefig()
         plt.show()
+
+def plot_temperature_detail(dyo_level):
+
+    plt.rcParams.update({'font.family': 'arial'})
+    fig, (ax0, ax1) = plt.subplots(1, 2)
+    fig.suptitle('Plot of temperature details', fontsize=12, weight="bold")
+
+    ax0.plot(dyo_level['Temperature[°C]'], '-r')
+    ax1.hist(dyo_level['Temperature[°C]'], bins=100, color='r', orientation='horizontal')
+
+    plt.show()
 
 
 def plot_all_levels(nrw_tawe_level, nrw_dyo_rainfall, wff_level, dyo_level):
@@ -318,12 +333,17 @@ def main():
     file2 = "CSV/VEI_EW141_DYO_250209124546_EW141.csv"
     file3 = "CSV/NRW_DYO_20250208215247.csv"
     file4 = "CSV/NRW_TAWE_20250208215134.csv"
+    file5 = "CSV/VEI_DZ637_SYG_250302201153_DZ637.csv"
 
     ## Import data
     wff_level = import_logger_data(file1, 75, 33363)
     dyo_level = import_logger_data(file2, 51, 33363)
+    dyo_baro = import_logger_data(file5, 75, 33363)
+    # wff_level = import_logger_data(file1, 75, 15000)
+    # dyo_level = import_logger_data(file2, 51, 15000)
+    # dyo_baro = import_logger_data(file5, 75, 15000)
     nrw_dyo_rainfall = import_nrw_data(file3, 78, 11127)
-    nrw_tawe_level = import_nrw_data(file4, 78, 11127)
+    # nrw_tawe_level = import_nrw_data(file4, 78, 11127)
 
     ## Identify peaks times
     dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, dyo_temperature_trough_times_idx = identify_peaks(dyo_level)
@@ -335,16 +355,19 @@ def main():
      dyo_onetwenty_hr_mean) = calculate_averages(dyo_level)
 
     # Calculate stats and write to file
-    calculate_stats('DYO', dyo_level)
-    calculate_stats('WFF', wff_level)
+    # calculate_stats('DYO', dyo_level)
+    # calculate_stats('WFF', wff_level)
+    # calculate_stats('DYO Baro', dyo_baro)
 
     ## Plot all the data for comparison
     # plot_all_levels(nrw_tawe_level, nrw_dyo_rainfall, wff_level, dyo_level)
 
+    plot_temperature_detail(dyo_level)
+
     # ## Plot each sink against rainfall & resurgence, and highlight peak/rise samples
-    labels = ['WFF stage', 'NRW rainfall', 'DYO stage', 'DYO 120 hour moving mean', 'DYO water temperature']
-    plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level,
-                 wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, labels)
+    labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
+              'DYO water temperature', 'DYO air temperature']
+    plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
 
     ## Create unified Excel output
     # write_excel(nrw_tawe_level,
