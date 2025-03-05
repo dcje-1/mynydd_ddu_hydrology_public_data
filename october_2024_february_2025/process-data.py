@@ -16,6 +16,7 @@ from matplotlib.widgets import MultiCursor
 import scipy.signal as sp
 from scipy.signal import savgol_filter, find_peaks, resample, argrelextrema
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.gridspec import GridSpec
 
 
 # import xlsxwriter
@@ -157,14 +158,36 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         export_pdf.savefig()
         plt.show()
 
-def plot_temperature_detail(dyo_level):
+def plot_temperature_detail(dyo_level, dyo_baro):
 
     plt.rcParams.update({'font.family': 'arial'})
-    fig, (ax0, ax1) = plt.subplots(1, 2)
+    fig, axs = plt.subplots(2, 2, gridspec_kw={'width_ratios':[3,1]})
     fig.suptitle('Plot of temperature details', fontsize=12, weight="bold")
 
-    ax0.plot(dyo_level['Temperature[°C]'], '-r')
-    ax1.hist(dyo_level['Temperature[°C]'], bins=100, color='r', orientation='horizontal')
+    axs[0,0].plot(dyo_level['Temperature[°C]'], '-r', label='DYO water temperature')
+    axs[0,0].set_ylabel('Temperature, °C')
+    axs[0,0].set_xlabel('Date/Time')
+    axs[0,0].tick_params(axis='x', rotation=50)
+    axs[0,0].grid()
+    axs[0,0].legend()
+
+    axs[0,1].hist(dyo_level['Temperature[°C]'], bins=100, color='r', orientation='horizontal')
+    axs[0,1].set_xlabel('Distribution (with 100 bins)')
+    axs[0,1].grid()
+
+    axs[1,0].plot(dyo_baro['Temperature[°C]'], '-r', label='DYO air temperature')
+    axs[1,0].set_ylabel('Temperature, °C')
+    axs[1,0].set_xlabel('Date/Time')
+    axs[1,0].tick_params(axis='x', rotation=50)
+    axs[1,0].grid()
+    axs[1,0].legend()
+
+    axs[1,1].hist(dyo_baro['Temperature[°C]'], bins=100, color='r', orientation='horizontal')
+    axs[1,1].set_xlabel('Distribution (with 100 bins)')
+    axs[1,1].grid()
+
+    fig.tight_layout()
+    fig.savefig('temperature.pdf')
 
     plt.show()
 
@@ -362,12 +385,12 @@ def main():
     ## Plot all the data for comparison
     # plot_all_levels(nrw_tawe_level, nrw_dyo_rainfall, wff_level, dyo_level)
 
-    plot_temperature_detail(dyo_level)
+    plot_temperature_detail(dyo_level, dyo_baro)
 
     # ## Plot each sink against rainfall & resurgence, and highlight peak/rise samples
-    labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
-              'DYO water temperature', 'DYO air temperature']
-    plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
+    # labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
+    #           'DYO water temperature', 'DYO air temperature']
+    # plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
 
     ## Create unified Excel output
     # write_excel(nrw_tawe_level,
