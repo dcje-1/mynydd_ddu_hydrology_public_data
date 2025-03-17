@@ -192,68 +192,6 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     plt.show()
 
 
-def plot_all_levels(nrw_tawe_level, nrw_dyo_rainfall, wff_level, dyo_level):
-    with PdfPages('outputs/summary_plots_1.pdf') as export_pdf:
-        # Change the default font family to Arial
-        plt.rcParams.update({'font.family': 'arial'})
-
-        # Plot results - datetime verses depth
-        fig, (ax0, ax1, ax3) = plt.subplots(nrows=3, sharex='all')
-        fig.suptitle('Summary plot of the Waun Fignen Felen stream stage\n versus '
-                     'the Dan yr Ogof Resurgence and \nTawe river stage',
-                     fontsize=12, weight="bold")
-
-        lines0 = ax0.plot(nrw_tawe_level['Values'], 'b', label='NRW Tawe stage at Craig y Nos')
-        lines1 = ax0.plot(wff_level['Water head[m]'], 'm', label='WFF stage')
-        lines2 = ax0.plot(dyo_level['Water head[m]'], 'c', label='DYO resurgence stage')
-
-        ax0.set_ylabel('Stage (m)', weight="bold")
-        ax0.tick_params(axis='y', color='b', labelcolor='k')
-
-        lines3 = ax1.plot(nrw_dyo_rainfall['Values'], '0.8', label='NRW rainfall at DYO')
-        ax1.invert_yaxis()
-        ax1.legend()
-
-        ax2 = ax1.twinx()
-        lines4 = ax3.plot(wff_level['Temperature[°C]'], 'm', label='WFF temperature')
-        ax3.legend()
-        lines5 = ax2.plot(dyo_level['Temperature[°C]'], 'c', label='DYO temperature')
-        ax2.legend()
-
-        lines_1 = lines0 + lines1 + lines2
-        labels = [l.get_label() for l in lines_1]
-        ax0.legend(lines_1, labels, loc=0)
-
-        # lines_2 = lines4 + lines5
-        # labels = [l.get_label() for l in lines_2]
-        # ax2.legend(lines_2, labels, loc=0)
-
-        ax1.set_ylabel('Rainfall (mm)', weight="bold")
-        ax2.set_ylabel('Water Temperature ($^\circ$C)', weight="bold")
-        ax3.set_ylabel('Water Temperature ($^\circ$C)', weight="bold")
-        ax3.set_xlabel('Time stamp', weight="bold")
-        xfmt = mdates.DateFormatter('%d-%m-%y %H:%M')
-        ax3.xaxis.set_major_formatter(xfmt)
-        ax3.tick_params(axis='x', rotation=50)
-
-        # Adjust x-tick resolution for zooming in
-        ax3.xaxis.set_major_locator(ticker.MultipleLocator(10))
-        ax0.autoscale(enable=True, axis='both', tight=None)
-        ax1.autoscale(enable=True, axis='both', tight=None)
-        ax3.autoscale(enable=True, axis='both', tight=None)
-        ax0.grid(True)
-        ax1.grid(True)
-        ax3.grid(True)
-
-        fig.tight_layout()
-        mng = plt.get_current_fig_manager()
-        # Resize in pixels
-        mng.resize(1500, 720)
-        export_pdf.savefig()
-        plt.show()
-        #plt.close()
-
-
 def calculate_stats(name, data_frame):
     # Calc stats
     mean = np.mean(data_frame['Temperature[°C]'])
@@ -278,95 +216,18 @@ def calculate_stats(name, data_frame):
         print(f'{name} temperature number of samples = {num_samps}', file=f)
 
 
-def write_excel(nrw_tawe_level,
-               nrw_dyo_rainfall,
-               wff_level,
-               wff_level_peak_times_idx,
-               wff_temperature_peak_times_idx,
-               wff_temperature_trough_times_idx,
-               giedd_level,
-               giedd_level_peak_times_idx,
-               giedd_temperature_peak_times_idx,
-               giedd_temperature_trough_times_idx,
-               dyo_level,
-               dyo_level_peak_times_idx,
-               dyo_temperature_peak_times_idx,
-               dyo_temperature_trough_times_idx,
-               dyo_one_hr_mean, dyo_two_hr_mean,
-               dyo_four_hr_mean, dyo_six_hr_mean,
-               dyo_eight_hr_mean, dyo_twelve_hr_mean, dyo_twentyfour_hr_mean,
-               dyo_fourtyeight_hr_mean, dyo_seventytwo_hr_mean,
-              dyo_ninetysix_hr_mean, dyo_onetwenty_hr_mean):
-
-    # Add the mean levels to "dyo_level" dataframe
-    dyo_level.insert(2, 'One hour moving mean (m)', dyo_one_hr_mean)
-    dyo_level.insert(3, 'Two hour moving mean (m)', dyo_two_hr_mean)
-    dyo_level.insert(4, 'Four hour moving mean (m)', dyo_four_hr_mean)
-    dyo_level.insert(5, 'Six hour moving mean (m)', dyo_six_hr_mean)
-    dyo_level.insert(6, 'Eight hour moving mean (m)', dyo_eight_hr_mean)
-    dyo_level.insert(7, 'Twelve hour moving mean (m)', dyo_twelve_hr_mean)
-    dyo_level.insert(8, 'Twenty four hour moving mean (m)', dyo_twentyfour_hr_mean)
-    dyo_level.insert(9, 'Fourty eight hour moving mean (m)', dyo_fourtyeight_hr_mean)
-    dyo_level.insert(10, 'Seventy two hour moving mean (m)', dyo_seventytwo_hr_mean)
-    dyo_level.insert(11, 'Ninety six hour moving mean (m)', dyo_ninetysix_hr_mean)
-    dyo_level.insert(12, 'One hundred and twenty hour moving mean (m)', dyo_onetwenty_hr_mean)
-
-    # Add the numerical indexes to the rise/peak index data. Create a data frame out of the two series'
-    # and sort the indexing out
-    wff_level_peak_times = pd.DataFrame(wff_level['Water head[m]'][wff_level_peak_times_idx])
-    wff_level_peak_times.insert(1, 'Sample number (5 min intervals)', wff_level_peak_times_idx)
-    wff_temperature_peak_times = pd.DataFrame(wff_level['Temperature[°C]'][wff_temperature_peak_times_idx])
-    wff_temperature_peak_times.insert(1, 'Sample number (5 min intervals)', wff_temperature_peak_times_idx)
-    wff_temperature_trough_times = pd.DataFrame(wff_level['Temperature[°C]'][wff_temperature_trough_times_idx])
-    wff_temperature_trough_times.insert(1, 'Sample number (5 min intervals)', wff_temperature_trough_times_idx)
-    giedd_level_peak_times = pd.DataFrame(giedd_level['Water head[m]'][giedd_level_peak_times_idx])
-    giedd_level_peak_times.insert(1, 'Sample number (5 min intervals)', giedd_level_peak_times_idx)
-    giedd_temperature_peak_times = pd.DataFrame(giedd_level['Temperature[°C]'][giedd_temperature_peak_times_idx])
-    giedd_temperature_peak_times.insert(1, 'Sample number (5 min intervals)', giedd_temperature_peak_times_idx)
-    giedd_temperature_trough_times = pd.DataFrame(giedd_level['Temperature[°C]'][giedd_temperature_trough_times_idx])
-    giedd_temperature_trough_times.insert(1, 'Sample number (5 min intervals)', giedd_temperature_trough_times_idx)
-    dyo_level_peak_times = pd.DataFrame(dyo_level['Water head[m]'][dyo_level_peak_times_idx])
-    dyo_level_peak_times.insert(1, 'Sample number (5 min intervals)', dyo_level_peak_times_idx)
-    dyo_temperature_peak_times = pd.DataFrame(dyo_level['Temperature[°C]'][dyo_temperature_peak_times_idx])
-    dyo_temperature_peak_times.insert(1, 'Sample number (5 min intervals)', dyo_temperature_peak_times_idx)
-    dyo_temperature_trough_times = pd.DataFrame(dyo_level['Temperature[°C]'][dyo_temperature_trough_times_idx])
-    dyo_temperature_trough_times.insert(1, 'Sample number (5 min intervals)', dyo_temperature_trough_times_idx)
-
-
-    with pd.ExcelWriter('outputs/unified_logger_data_jul_2023_feb_2024.xlsx') as writer:
-        nrw_tawe_level.to_excel(writer, sheet_name='nrw_tawe_level')
-        nrw_dyo_rainfall.to_excel(writer, sheet_name='nrw_dyo_rainfall')
-        wff_level.to_excel(writer, sheet_name='wff_level')
-        wff_level_peak_times.to_excel(writer, sheet_name='wff_level_peak_times')
-        wff_temperature_peak_times.to_excel(writer, sheet_name='wff_temperature_peak_times')
-        wff_temperature_trough_times.to_excel(writer, sheet_name='wff_temperature_trough_times')
-        giedd_level.to_excel(writer, sheet_name='giedd_level')
-        giedd_level_peak_times.to_excel(writer, sheet_name='giedd_level_peak_times')
-        giedd_temperature_peak_times.to_excel(writer, sheet_name='giedd_temperature_peak_times')
-        giedd_temperature_trough_times.to_excel(writer, sheet_name='giedd_temperature_trough_times')
-        dyo_level.to_excel(writer, sheet_name='dyo_level')
-        dyo_level_peak_times.to_excel(writer, sheet_name='dyo_level_peak_times')
-        dyo_temperature_peak_times.to_excel(writer, sheet_name='dyo_temperature_peak_times')
-        dyo_temperature_trough_times.to_excel(writer, sheet_name='dyo_temperature_trough_times')
-
-
 def main():
     # Name input files
-    file1 = "CSV/VEI_DZ629_WFF_250209124536_DZ629.csv"
-    file2 = "CSV/VEI_EW141_DYO_250209124546_EW141.csv"
-    file3 = "CSV/NRW_DYO_20250208215247.csv"
-    file4 = "CSV/NRW_TAWE_20250208215134.csv"
-    file5 = "CSV/VEI_DZ637_SYG_250302201153_DZ637.csv"
+    file1 = "CSV/wff_depth_consolidated.csv"
+    file2 = "CSV/dyo_depth_consolidated.csv"
+    file3 = "CSV/dyo_baro_consolidated.csv"
+    file4 = "CSV/nrw_rain_consolidated.csv"
 
     ## Import data
-    wff_level = import_logger_data(file1, 75, 33363)
-    dyo_level = import_logger_data(file2, 51, 33363)
-    dyo_baro = import_logger_data(file5, 75, 33363)
-    # wff_level = import_logger_data(file1, 75, 15000)
-    # dyo_level = import_logger_data(file2, 51, 15000)
-    # dyo_baro = import_logger_data(file5, 75, 15000)
-    nrw_dyo_rainfall = import_nrw_data(file3, 78, 11127)
-    # nrw_tawe_level = import_nrw_data(file4, 78, 11127)
+    wff_level = import_logger_data(file1, 0, 61916)
+    dyo_level = import_logger_data(file2, 0, 80111)
+    dyo_baro = import_logger_data(file3, 0, 80114)
+    nrw_dyo_rainfall = import_nrw_data(file4, 1, 26937)
 
     ## Identify peaks times
     dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, dyo_temperature_trough_times_idx = identify_peaks(dyo_level)
@@ -382,36 +243,12 @@ def main():
     # calculate_stats('WFF', wff_level)
     # calculate_stats('DYO Baro', dyo_baro)
 
-    ## Plot all the data for comparison
-    # plot_all_levels(nrw_tawe_level, nrw_dyo_rainfall, wff_level, dyo_level)
-
     plot_temperature_detail(dyo_level, dyo_baro)
 
     ## Plot each sink against rainfall & resurgence, and highlight peak/rise samples
     # labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
     #           'DYO water temperature', 'DYO air temperature']
     # plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
-
-    ## Create unified Excel output
-    # write_excel(nrw_tawe_level,
-    #                nrw_dyo_rainfall,
-    #                wff_level,
-    #                wff_level_peak_times_idx,
-    #                wff_temperature_peak_times_idx,
-    #                wff_temperature_trough_times_idx,
-    #                giedd_level,
-    #                giedd_level_peak_times_idx,
-    #                giedd_temperature_peak_times_idx,
-    #                giedd_temperature_trough_times_idx,
-    #                dyo_level,
-    #                dyo_level_peak_times_idx,
-    #                dyo_temperature_peak_times_idx,
-    #                dyo_temperature_trough_times_idx,
-    #                dyo_one_hr_mean, dyo_two_hr_mean,
-    #                dyo_four_hr_mean, dyo_six_hr_mean,
-    #                dyo_eight_hr_mean, dyo_twelve_hr_mean, dyo_twentyfour_hr_mean,
-    #                dyo_fourtyeight_hr_mean, dyo_seventytwo_hr_mean,
-    #               dyo_ninetysix_hr_mean, dyo_onetwenty_hr_mean)
 
 
 if __name__ == "__main__":
