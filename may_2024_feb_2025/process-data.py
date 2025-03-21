@@ -164,17 +164,19 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     fig, axs = plt.subplots(ncols=3, gridspec_kw={'width_ratios':[3,1,1]})
     fig.suptitle('Plot of temperature details', fontsize=12, weight="bold")
 
-    axs[0].plot(dyo_level['Temperature[°C]'], '-r', label='DYO water temperature')
+    axs[0].plot(dyo_level['Temperature[°C]'], '-xr', label='DYO water temperature')
     # axs[0].set_ylabel('Temperature, °C')
     # axs[0].set_xlabel('Date/Time')
     # axs[0].tick_params(axis='x', rotation=50)
     # axs[0].grid()
     # axs[0].legend()
 
-    axs[0].plot(dyo_baro['Temperature[°C]'], '-b', label='DYO air temperature')
+    axs[0].plot(dyo_baro['Temperature[°C]'], '-xb', label='DYO air temperature')
     axs[0].set_ylabel('Temperature, °C')
     axs[0].set_xlabel('Date/Time')
     axs[0].tick_params(axis='x', rotation=50)
+    xfmt = mdates.DateFormatter('%d-%m-%y %H:%M')
+    axs[0].xaxis.set_major_formatter(xfmt)
     axs[0].grid()
     axs[0].legend()
 
@@ -222,12 +224,13 @@ def main():
     file2 = "CSV/dyo_depth_consolidated.csv"
     file3 = "CSV/dyo_baro_consolidated.csv"
     file4 = "CSV/nrw_rain_consolidated.csv"
+    # file4 = "CSV/NRW_TAWE_20250208215134.csv"
 
     ## Import data
-    wff_level = import_logger_data(file1, 0, 61916)
-    dyo_level = import_logger_data(file2, 0, 80111)
-    dyo_baro = import_logger_data(file3, 0, 80114)
-    nrw_dyo_rainfall = import_nrw_data(file4, 1, 26937)
+    wff_level = import_logger_data(file1, 1, 61915)
+    dyo_level = import_logger_data(file2, 1, 80017)
+    dyo_baro = import_logger_data(file3, 1, 80017)
+    nrw_dyo_rainfall = import_nrw_data(file4, 1, 26786)
 
     ## Identify peaks times
     dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, dyo_temperature_trough_times_idx = identify_peaks(dyo_level)
@@ -246,9 +249,9 @@ def main():
     plot_temperature_detail(dyo_level, dyo_baro)
 
     ## Plot each sink against rainfall & resurgence, and highlight peak/rise samples
-    # labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
-    #           'DYO water temperature', 'DYO air temperature']
-    # plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
+    labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
+              'DYO water temperature', 'DYO air temperature']
+    plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
 
 
 if __name__ == "__main__":
