@@ -17,6 +17,7 @@ import scipy.signal as sp
 from scipy.signal import savgol_filter, find_peaks, resample, argrelextrema
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.gridspec import GridSpec
+import matplotlib as mpl
 
 
 # import xlsxwriter
@@ -86,7 +87,7 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         # Change the default font family to Arial
         plt.rcParams.update({'font.family': 'arial'})
         fig, (ax0, ax1) = plt.subplots(nrows=2, sharex='all')
-        fig.suptitle('Plot of sink, resurgence & rainfall data,\n highlighting peak stage '
+        fig.suptitle('Plot of sink, resurgence & rainfall data,\n highlighting peak depth '
                      'times (and sample numbers)', fontsize=12, weight="bold")
 
         # Plot rainfall on same plot, dual y axis
@@ -161,35 +162,71 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
 def plot_temperature_detail(dyo_level, dyo_baro):
 
     plt.rcParams.update({'font.family': 'arial'})
-    fig, axs = plt.subplots(ncols=3, gridspec_kw={'width_ratios':[3,1,1]})
-    fig.suptitle('Plot of temperature details', fontsize=12, weight="bold")
+    fig, (ax0, ax1, ax2) = plt.subplots(1, 3, gridspec_kw={'width_ratios':[3,1,1]})
+    fig.suptitle('Plot of Dan yr Ogof river cave water and air temperature details', fontsize=12, weight="bold")
 
-    axs[0].plot(dyo_level['Temperature[°C]'], '-xr', label='DYO water temperature')
-    # axs[0].set_ylabel('Temperature, °C')
-    # axs[0].set_xlabel('Date/Time')
-    # axs[0].tick_params(axis='x', rotation=50)
-    # axs[0].grid()
-    # axs[0].legend()
-
-    axs[0].plot(dyo_baro['Temperature[°C]'], '-xb', label='DYO air temperature')
-    axs[0].set_ylabel('Temperature, °C')
-    axs[0].set_xlabel('Date/Time')
-    axs[0].tick_params(axis='x', rotation=50)
+    line0 = ax0.plot(dyo_level['Temperature[°C]'], '-r', label='DYO water temperature', linewidth=0.5)
+    line1 = ax0.plot(dyo_baro['Temperature[°C]'], '-b', label='DYO air temperature', linewidth=0.5)
+    ax0.set_ylabel('Temperature, °C')
+    ax0.set_xlabel('Date/Time')
+    ax0.tick_params(axis='x', rotation=50)
     xfmt = mdates.DateFormatter('%d-%m-%y %H:%M')
-    axs[0].xaxis.set_major_formatter(xfmt)
-    axs[0].grid()
-    axs[0].legend()
+    ax0.xaxis.set_major_formatter(xfmt)
+    # ax0.xaxis.set_major_locator(ticker.MultipleLocator(0.25))
+    ax0.grid()
 
-    axs[1].hist(dyo_level['Temperature[°C]'], bins=100, color='r', orientation='horizontal', label='DYO water temperature')
-    axs[1].set_xlabel('Distribution (with 100 bins)')
-    axs[1].grid()
+    ax3 = ax0.twinx()
+    line2 = ax3.plot(dyo_level['Water head[m]'], '-m', label='DYO water depth', linewidth=0.5)
+    ax3.set_ylabel('Water depth, m')
 
-    axs[2].hist(dyo_baro['Temperature[°C]'], bins=100, color='b', orientation='horizontal', label='DYO air temperature')
-    axs[2].set_xlabel('Distribution (with 100 bins)')
-    axs[2].grid()
+    lines = line0 + line1 + line2
+    labels = [l.get_label() for l in lines]
+    ax0.legend(lines, labels, loc=0)
 
+    ax1.hist(dyo_level['Temperature[°C]'], bins=100, color='r', orientation='horizontal', label='DYO water temperature')
+    ax1.set_xlabel('Distribution (with 100 bins)')
+    ax1.grid()
+
+    ax2.hist(dyo_baro['Temperature[°C]'], bins=100, color='b', orientation='horizontal', label='DYO air temperature')
+    ax2.set_xlabel('Distribution (with 100 bins)')
+    ax2.grid()
+
+    # Function to update histogram based on the zoom region of the time plot
+    def update_histogram(event):
+        # Get the visible x-limits of the left plot (ax1)
+        xlim = ax1.get_xlim()
+
+        # Convert xlim values to datetime if needed (since ax1 is datetime-indexed)
+        start_date = pd.to_datetime(xlim[0], unit='D', origin=pd.Timestamp('1970-01-01'))
+        end_date = pd.to_datetime(xlim[1], unit='D', origin=pd.Timestamp('1970-01-01')) 
+
+        # Filter the signal data based on the current x-axis limits
+        zoomed_level_data = dyo_level[(dyo_level.index >= start_date) & (dyo_level.index <= end_date)]["Temperature[°C]"]
+        zoomed_baro_data = dyo_baro[(dyo_baro.index >= start_date) & (dyo_baro.index <= end_date)]["Temperature[°C]"]
+        
+	    # Clear the previous histogram but retain the axis labels and grid
+        ax1.cla()  # Clears the axis but keeps labels and settings
+        ax2.cla()  # Clears the axis but keeps labels and settings
+		
+        ax1.hist(zoomed_level_data, bins=100, color='r', orientation='horizontal',
+                 label='DYO water temperature')
+        ax1.set_xlabel('Distribution (with 100 bins)')
+        ax1.grid()
+        
+        ax2.hist(zoomed_baro_data, bins=100, color='r', orientation='horizontal',
+                 label='DYO water temperature')
+        ax2.set_xlabel('Distribution (with 100 bins)')
+        ax2.grid()
+
+        # Redraw the plot
+        fig.canvas.draw_idle()
+        
+    # Connect the zoom/pan event to the update function for the time plot's xlim
+    ax1.callbacks.connect('xlim_changed', update_histogram)
+    # Interactive zoom tool
+    mpl.rcParams['toolbar'] = 'None'  # Disable the toolbar for better zoom experience
     fig.tight_layout()
-    fig.savefig('temperature.pdf')
+    fig.savefig('outputs/temperature.pdf')
 
     plt.show()
 
@@ -249,9 +286,9 @@ def main():
     plot_temperature_detail(dyo_level, dyo_baro)
 
     ## Plot each sink against rainfall & resurgence, and highlight peak/rise samples
-    labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
-              'DYO water temperature', 'DYO air temperature']
-    plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
+    # labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
+    #           'DYO water temperature', 'DYO air temperature']
+    # plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
 
 
 if __name__ == "__main__":
