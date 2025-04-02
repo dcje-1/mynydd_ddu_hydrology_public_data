@@ -190,6 +190,10 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     labels = [l.get_label() for l in lines]
     ax0.legend(lines, labels, loc=0)
 
+    # Calculate the standard deviation
+    level_std_dev = np.std(dyo_level['Temperature[°C]'])
+    baro_std_dev = np.std(dyo_baro['Temperature[°C]'])
+
     ax1.hist(dyo_level['Temperature[°C]'], bins=100, color='r', orientation='horizontal', label='DYO water temperature')
     ax1.set_xlabel('Distribution (with 100 bins)')
     ax1.grid()
@@ -198,11 +202,18 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     ax2.set_xlabel('Distribution (with 100 bins)')
     ax2.grid()
 
+    # Annotate the standard deviation on the plot
+    ax1.text(0.95, 0.95, f'Standard Deviation: {level_std_dev:.2f}',
+             ha='right', va='top', transform=ax1.transAxes,
+             fontsize=8, fontname='Arial', color='black')
+
+    ax2.text(0.95, 0.95, f'Standard Deviation: {baro_std_dev:.2f}',
+             ha='right', va='top', transform=ax2.transAxes,
+             fontsize=8, fontname='Arial', color='black')
+
 
     # Function to update histogram based on the zoom region of the time plot
     def update_histogram(event):
-        # Debug
-        print(f"DEBUG: Entered zoom tool callback")
         # Get the visible x-limits of the left plot (ax1)
         xlim = ax0.get_xlim()
 
@@ -232,6 +243,19 @@ def plot_temperature_detail(dyo_level, dyo_baro):
         ax2.set_xlabel('Distribution (with 100 bins)')
         ax2.grid()
 
+        # Calculate the standard deviation
+        level_std_dev_new = np.std(zoomed_level_data)
+        baro_std_dev_new = np.std(zoomed_baro_data)
+
+        # Annotate the standard deviation on the plot
+        ax1.text(0.95, 0.95, f'Standard Deviation: {level_std_dev_new:.2f}',
+                 ha='right', va='top', transform=ax1.transAxes,
+                 fontsize=8, fontname='Arial', color='black')
+
+        ax2.text(0.95, 0.95, f'Standard Deviation: {baro_std_dev_new:.2f}',
+                 ha='right', va='top', transform=ax2.transAxes,
+                 fontsize=8, fontname='Arial', color='black')
+
         # Redraw the plot
         fig.canvas.draw_idle()
 
@@ -241,7 +265,6 @@ def plot_temperature_detail(dyo_level, dyo_baro):
 
     # Use a flag to avoid the initial callback call
     def on_figure_shown(event):
-        print(f"DEBUG: Figure shown")
         # Reconnect the callback only after the figure has been fully initialized
         ax0.callbacks.connect('xlim_changed', update_histogram)
         fig.canvas.mpl_disconnect(figure_shown_connection)  # Disconnect after it's been handled
@@ -251,7 +274,6 @@ def plot_temperature_detail(dyo_level, dyo_baro):
 
     fig.tight_layout()
     fig.savefig('outputs/temperature.pdf')
-    print(f"DEBUG: Draw plot...")
     plt.show()
 
 
