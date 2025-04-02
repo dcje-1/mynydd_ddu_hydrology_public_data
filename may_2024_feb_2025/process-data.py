@@ -35,11 +35,11 @@ def import_nrw_data(file, start_row, end_row):
 
 
 def import_logger_data(file, start_row, end_row):
+    logger_df = pd.read_csv(file, skiprows=start_row, nrows=end_row, encoding='iso-8859-1',
+                            header=0, names=['Date/time', 'Water head[cm]', 'Temperature[°C]'], index_col=0,
+                            parse_dates=True)
 
-    logger_df = pd.read_csv(file, skiprows=start_row, nrows=end_row  , encoding='iso-8859-1',
-                            header=0, names=['Date/time','Water head[cm]','Temperature[°C]'], index_col=0, parse_dates=True)
-
-    logger_df['Water head[cm]'] = logger_df['Water head[cm]']/100
+    logger_df['Water head[cm]'] = logger_df['Water head[cm]'] / 100
     logger_df.rename(columns={'Water head[cm]': 'Water head[m]'}, inplace=True)
 
     return logger_df
@@ -76,9 +76,9 @@ def calculate_averages(level_values):
     onetwenty_hr_mean = level_values['Water head[m]'].rolling(1440).mean()
 
     return one_hr_mean, two_hr_mean, four_hr_mean, six_hr_mean, \
-           eight_hr_mean, twelve_hr_mean, twentyfour_hr_mean, \
-           fourtyeight_hr_mean, seventytwo_hr_mean, ninetysix_hr_mean, \
-           onetwenty_hr_mean
+        eight_hr_mean, twelve_hr_mean, twentyfour_hr_mean, \
+        fourtyeight_hr_mean, seventytwo_hr_mean, ninetysix_hr_mean, \
+        onetwenty_hr_mean
 
 
 def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level,
@@ -106,8 +106,10 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         # Add peak annotations - sample numbers
         for i in range(0, len(wff_level_peak_times_idx)):
             ax3.annotate(f'wff_P:{wff_level_peak_times_idx[i]}',
-                         xy=(wff_level.index[wff_level_peak_times_idx[i]], wff_level['Water head[m]'][wff_level_peak_times_idx[i]]),
-                         fontsize=8, color='m', xytext=(wff_level.index[wff_level_peak_times_idx[i]], wff_level['Water head[m]'][wff_level_peak_times_idx[i]]))
+                         xy=(wff_level.index[wff_level_peak_times_idx[i]],
+                             wff_level['Water head[m]'][wff_level_peak_times_idx[i]]),
+                         fontsize=8, color='m', xytext=(
+                wff_level.index[wff_level_peak_times_idx[i]], wff_level['Water head[m]'][wff_level_peak_times_idx[i]]))
 
         lines2 = lines0 + lines1
         labels1 = [l.get_label() for l in lines2]
@@ -122,8 +124,10 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
 
         for i in range(0, len(dyo_level_peak_times_idx)):
             ax1.annotate(f'dyo_P:{dyo_level_peak_times_idx[i]}',
-                         xy=(dyo_level.index[dyo_level_peak_times_idx[i]], dyo_level['Water head[m]'][dyo_level_peak_times_idx[i]]),
-                         fontsize=8, color='m', xytext=(dyo_level.index[dyo_level_peak_times_idx[i]], dyo_level['Water head[m]'][dyo_level_peak_times_idx[i]]))
+                         xy=(dyo_level.index[dyo_level_peak_times_idx[i]],
+                             dyo_level['Water head[m]'][dyo_level_peak_times_idx[i]]),
+                         fontsize=8, color='m', xytext=(
+                dyo_level.index[dyo_level_peak_times_idx[i]], dyo_level['Water head[m]'][dyo_level_peak_times_idx[i]]))
 
         ax4 = ax1.twinx()
         lines5 = ax4.plot(dyo_level['Temperature[°C]'], '-r', label=labels[4])
@@ -131,8 +135,11 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
 
         for i in range(0, len(dyo_temperature_peak_times_idx)):
             ax4.annotate(f'dyo_T:{dyo_temperature_peak_times_idx[i]}',
-                         xy=(dyo_level.index[dyo_temperature_peak_times_idx[i]], dyo_level['Temperature[°C]'][dyo_temperature_peak_times_idx[i]]),
-                         fontsize=8, color='m', xytext=(dyo_level.index[dyo_temperature_peak_times_idx[i]], dyo_level['Temperature[°C]'][dyo_temperature_peak_times_idx[i]]))
+                         xy=(dyo_level.index[dyo_temperature_peak_times_idx[i]],
+                             dyo_level['Temperature[°C]'][dyo_temperature_peak_times_idx[i]]),
+                         fontsize=8, color='m', xytext=(dyo_level.index[dyo_temperature_peak_times_idx[i]],
+                                                        dyo_level['Temperature[°C]'][
+                                                            dyo_temperature_peak_times_idx[i]]))
 
         lines6 = ax4.plot(dyo_baro['Temperature[°C]'], '-g', label=labels[5])
 
@@ -159,10 +166,10 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         export_pdf.savefig()
         plt.show()
 
-def plot_temperature_detail(dyo_level, dyo_baro):
 
+def plot_temperature_detail(dyo_level, dyo_baro):
     plt.rcParams.update({'font.family': 'arial'})
-    fig, (ax0, ax1, ax2) = plt.subplots(1, 3, gridspec_kw={'width_ratios':[3,1,1]})
+    fig, (ax0, ax1, ax2) = plt.subplots(1, 3, gridspec_kw={'width_ratios': [3, 1, 1]})
     fig.suptitle('Plot of Dan yr Ogof river cave water and air temperature details', fontsize=12, weight="bold")
 
     line0 = ax0.plot(dyo_level['Temperature[°C]'], '-r', label='DYO water temperature', linewidth=0.5)
@@ -191,43 +198,60 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     ax2.set_xlabel('Distribution (with 100 bins)')
     ax2.grid()
 
+
     # Function to update histogram based on the zoom region of the time plot
     def update_histogram(event):
+        # Debug
+        print(f"DEBUG: Entered zoom tool callback")
         # Get the visible x-limits of the left plot (ax1)
-        xlim = ax1.get_xlim()
+        xlim = ax0.get_xlim()
 
         # Convert xlim values to datetime if needed (since ax1 is datetime-indexed)
         start_date = pd.to_datetime(xlim[0], unit='D', origin=pd.Timestamp('1970-01-01'))
-        end_date = pd.to_datetime(xlim[1], unit='D', origin=pd.Timestamp('1970-01-01')) 
+        end_date = pd.to_datetime(xlim[1], unit='D', origin=pd.Timestamp('1970-01-01'))
 
         # Filter the signal data based on the current x-axis limits
-        zoomed_level_data = dyo_level[(dyo_level.index >= start_date) & (dyo_level.index <= end_date)]["Temperature[°C]"]
+        zoomed_level_data = dyo_level[(dyo_level.index >= start_date) & (dyo_level.index <= end_date)][
+            "Temperature[°C]"]
         zoomed_baro_data = dyo_baro[(dyo_baro.index >= start_date) & (dyo_baro.index <= end_date)]["Temperature[°C]"]
-        
-	    # Clear the previous histogram but retain the axis labels and grid
-        ax1.cla()  # Clears the axis but keeps labels and settings
-        ax2.cla()  # Clears the axis but keeps labels and settings
-		
+
+        # Disable the callbacks temporarily to avoid recursive calls
+        ax0.callbacks.disconnect('xlim_changed')  # Disable the callback temporarily
+
+        # Clear the axes before redrawing
+        ax1.clear()  # Clear the current histogram from ax1
+        ax2.clear()  # Clear the current histogram from ax2
+
         ax1.hist(zoomed_level_data, bins=100, color='r', orientation='horizontal',
                  label='DYO water temperature')
         ax1.set_xlabel('Distribution (with 100 bins)')
         ax1.grid()
-        
-        ax2.hist(zoomed_baro_data, bins=100, color='r', orientation='horizontal',
-                 label='DYO water temperature')
+
+        ax2.hist(zoomed_baro_data, bins=100, color='b', orientation='horizontal',
+                 label='DYO air temperature')
         ax2.set_xlabel('Distribution (with 100 bins)')
         ax2.grid()
 
         # Redraw the plot
         fig.canvas.draw_idle()
-        
+
     # Connect the zoom/pan event to the update function for the time plot's xlim
-    ax1.callbacks.connect('xlim_changed', update_histogram)
-    # Interactive zoom tool
-    mpl.rcParams['toolbar'] = 'None'  # Disable the toolbar for better zoom experience
+    # Disable the callback temporarily before the figure is shown
+    ax0.callbacks.disconnect('xlim_changed')
+
+    # Use a flag to avoid the initial callback call
+    def on_figure_shown(event):
+        print(f"DEBUG: Figure shown")
+        # Reconnect the callback only after the figure has been fully initialized
+        ax0.callbacks.connect('xlim_changed', update_histogram)
+        fig.canvas.mpl_disconnect(figure_shown_connection)  # Disconnect after it's been handled
+
+    # Connect to the 'draw_event' to trigger when the figure is drawn for the first time
+    figure_shown_connection = fig.canvas.mpl_connect('draw_event', on_figure_shown)
+
     fig.tight_layout()
     fig.savefig('outputs/temperature.pdf')
-
+    print(f"DEBUG: Draw plot...")
     plt.show()
 
 
@@ -243,7 +267,7 @@ def calculate_stats(name, data_frame):
     CV = np.std(data_frame['Temperature[°C]'], ddof=1) / mean * 100
     num_samps = np.size(data_frame['Temperature[°C]'])
 
-    with open('outputs/'+name+'_stats.txt', "a") as f:
+    with open('outputs/' + name + '_stats.txt', "a") as f:
         print(f'{name} temperature mean = {mean:.4f}°C', file=f)
         print(f'{name} temperature median = {median:.4f}°C', file=f)
         print(f'{name} temperature standard deviation = {std_dev:.4f}', file=f)
@@ -270,8 +294,10 @@ def main():
     nrw_dyo_rainfall = import_nrw_data(file4, 1, 26786)
 
     ## Identify peaks times
-    dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, dyo_temperature_trough_times_idx = identify_peaks(dyo_level)
-    wff_level_peak_times_idx, wff_temperature_peak_times_idx, wff_temperature_trough_times_idx = identify_peaks(wff_level)
+    dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, dyo_temperature_trough_times_idx = identify_peaks(
+        dyo_level)
+    wff_level_peak_times_idx, wff_temperature_peak_times_idx, wff_temperature_trough_times_idx = identify_peaks(
+        wff_level)
 
     ## Calculate the average level at the resurgence before each flood pulse - background levels
     (dyo_one_hr_mean, dyo_two_hr_mean, dyo_four_hr_mean, dyo_six_hr_mean, dyo_eight_hr_mean, dyo_twelve_hr_mean,
