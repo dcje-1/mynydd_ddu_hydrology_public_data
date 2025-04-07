@@ -195,11 +195,11 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     baro_std_dev = np.std(dyo_baro['Temperature[°C]'])
 
     ax1.hist(dyo_level['Temperature[°C]'], bins=100, color='r', orientation='horizontal', label='DYO water temperature')
-    ax1.set_xlabel('Distribution (with 100 bins)')
+    ax1.set_xlabel('Distribution (100 bins)')
     ax1.grid()
 
     ax2.hist(dyo_baro['Temperature[°C]'], bins=100, color='b', orientation='horizontal', label='DYO air temperature')
-    ax2.set_xlabel('Distribution (with 100 bins)')
+    ax2.set_xlabel('Distribution (100 bins)')
     ax2.grid()
 
     # Annotate the standard deviation on the plot
@@ -235,12 +235,12 @@ def plot_temperature_detail(dyo_level, dyo_baro):
 
         ax1.hist(zoomed_level_data, bins=100, color='r', orientation='horizontal',
                  label='DYO water temperature')
-        ax1.set_xlabel('Distribution (with 100 bins)')
+        ax1.set_xlabel('Distribution (100 bins)')
         ax1.grid()
 
         ax2.hist(zoomed_baro_data, bins=100, color='b', orientation='horizontal',
                  label='DYO air temperature')
-        ax2.set_xlabel('Distribution (with 100 bins)')
+        ax2.set_xlabel('Distribution (100 bins)')
         ax2.grid()
 
         # Calculate the standard deviation
