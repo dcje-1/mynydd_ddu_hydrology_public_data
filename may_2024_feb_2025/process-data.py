@@ -172,8 +172,8 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     fig, (ax0, ax1, ax2) = plt.subplots(1, 3, gridspec_kw={'width_ratios': [3, 1, 1]})
     fig.suptitle('Plot of Dan yr Ogof river cave water and air temperature details', fontsize=12, weight="bold")
 
-    line0 = ax0.plot(dyo_level['Temperature[°C]'], '-r', label='DYO water temperature', linewidth=0.5)
-    line1 = ax0.plot(dyo_baro['Temperature[°C]'], '-b', label='DYO air temperature', linewidth=0.5)
+    line0 = ax0.plot(dyo_level['Temperature[°C]'], '-r', label='DYO water temperature', linewidth=0.8)
+    line1 = ax0.plot(dyo_baro['Temperature[°C]'], '-b', label='DYO air temperature', linewidth=0.8)
     ax0.set_ylabel('Temperature, °C')
     ax0.set_xlabel('Date/Time')
     ax0.tick_params(axis='x', rotation=50)
@@ -183,7 +183,7 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     ax0.grid()
 
     ax3 = ax0.twinx()
-    line2 = ax3.plot(dyo_level['Water head[m]'], '-m', label='DYO water depth', linewidth=0.5)
+    line2 = ax3.plot(dyo_level['Water head[m]'], '-m', label='DYO water depth', linewidth=0.8)
     ax3.set_ylabel('Water depth, m')
 
     lines = line0 + line1 + line2
@@ -276,6 +276,33 @@ def plot_temperature_detail(dyo_level, dyo_baro):
     fig.savefig('outputs/temperature.pdf')
     plt.show()
 
+def plot_smoothed_temperatures(dyo_level, dyo_baro):
+    plt.rcParams.update({'font.family': 'arial'})
+    fig, ax0 = plt.subplots()
+    fig.suptitle('Plot of Dan yr Ogof river cave water and air temperature details with smoothing filter', fontsize=12, weight="bold")
+
+    water_oth_mean = dyo_level['Temperature[°C]'].rolling(1440).mean()
+    air_oth_mean = dyo_baro['Temperature[°C]'].rolling(1440).mean()
+
+    line0 = ax0.plot(water_oth_mean, '-r', label='120 hour mean water temperature', linewidth=1)
+    line1 = ax0.plot(air_oth_mean, '-b', label='120 hour mean air temperature', linewidth=1)
+    ax0.set_ylabel('Temperature, °C')
+    ax0.set_xlabel('Date/Time')
+    ax0.tick_params(axis='x', rotation=50)
+    xfmt = mdates.DateFormatter('%d-%m-%y %H:%M')
+    ax0.xaxis.set_major_formatter(xfmt)
+    # ax0.xaxis.set_major_locator(ticker.MultipleLocator(0.25))
+    ax0.grid()
+    ax0.legend()
+
+    # lines = line0 + line1
+    # labels = [l.get_label() for l in lines]
+    # ax0.legend(lines, labels, loc=0)
+
+    fig.tight_layout()
+    fig.savefig('outputs/smoothed_temperature.pdf')
+    plt.show()
+
 
 def calculate_stats(name, data_frame):
     # Calc stats
@@ -334,9 +361,11 @@ def main():
     plot_temperature_detail(dyo_level, dyo_baro)
 
     ## Plot each sink against rainfall & resurgence, and highlight peak/rise samples
-    # labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
-    #           'DYO water temperature', 'DYO air temperature']
-    # plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
+    labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
+              'DYO water temperature', 'DYO air temperature']
+    plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
+
+    plot_smoothed_temperatures(dyo_level, dyo_baro)
 
 
 if __name__ == "__main__":
