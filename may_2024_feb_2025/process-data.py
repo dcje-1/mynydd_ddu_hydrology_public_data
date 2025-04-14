@@ -358,12 +358,12 @@ def main():
     # calculate_stats('WFF', wff_level)
     # calculate_stats('DYO Baro', dyo_baro)
 
-    plot_temperature_detail(dyo_level, dyo_baro)
+    # plot_temperature_detail(dyo_level, dyo_baro)
 
     ## Plot each sink against rainfall & resurgence, and highlight peak/rise samples
-    labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
-              'DYO water temperature', 'DYO air temperature']
-    plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
+    # labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
+    #           'DYO water temperature', 'DYO air temperature']
+    # plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
 
     plot_smoothed_temperatures(dyo_level, dyo_baro)
 
