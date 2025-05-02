@@ -41,6 +41,7 @@ def import_logger_data(file, start_row, end_row):
 
     logger_df['Water head[cm]'] = logger_df['Water head[cm]'] / 100
     logger_df.rename(columns={'Water head[cm]': 'Water head[m]'}, inplace=True)
+    logger_df['idx'] = range(len(logger_df))
 
     return logger_df
 
@@ -98,7 +99,7 @@ def plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times
         ax3 = ax0.twinx()
 
         # Plot WFF level
-        lines1 = ax3.plot(wff_level['Water head[m]'], '-b', label=labels[0])
+        lines1 = ax3.plot(wff_level['Water head[m]'], '-xb', label=labels[0])
         # Plot peaks
         ax3.plot(wff_level['Water head[m]'][wff_level_peak_times_idx], 'mo')
         ax3.set_ylabel('Water depth (m)', weight="bold")
@@ -337,9 +338,9 @@ def main():
     # file4 = "CSV/NRW_TAWE_20250208215134.csv"
 
     ## Import data
-    wff_level = import_logger_data(file1, 1, 61915)
-    dyo_level = import_logger_data(file2, 1, 80017)
-    dyo_baro = import_logger_data(file3, 1, 80017)
+    wff_level = import_logger_data(file1, 1, 80116)
+    dyo_level = import_logger_data(file2, 1, 80116)
+    dyo_baro = import_logger_data(file3, 1, 80118)
     nrw_dyo_rainfall = import_nrw_data(file4, 1, 26786)
 
     ## Identify peaks times
@@ -360,12 +361,12 @@ def main():
 
     # plot_temperature_detail(dyo_level, dyo_baro)
 
-    ## Plot each sink against rainfall & resurgence, and highlight peak/rise samples
-    # labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
-    #           'DYO water temperature', 'DYO air temperature']
-    # plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
+    # Plot each sink against rainfall & resurgence, and highlight peak/rise samples
+    labels = ['WFF water depth', 'NRW rainfall', 'DYO water depth', 'DYO 120 hour water depth moving mean',
+              'DYO water temperature', 'DYO air temperature']
+    plot_details(dyo_level, dyo_level_peak_times_idx, dyo_temperature_peak_times_idx, wff_level, wff_level_peak_times_idx, dyo_onetwenty_hr_mean, nrw_dyo_rainfall, dyo_baro, labels)
 
-    plot_smoothed_temperatures(dyo_level, dyo_baro)
+    # plot_smoothed_temperatures(dyo_level, dyo_baro)
 
 
 if __name__ == "__main__":
